@@ -1,34 +1,17 @@
-name: Issue Labeler
+name: Issue Labeling
 
 on:
   issues:
     types:
       - opened
-      - edited
 
 jobs:
-  label-issues:
+  label:
     runs-on: ubuntu-latest
-    steps:
-      - name: Check for Label Criteria
-        uses: actions/github-script@v5
-        with:
-          script: |
-            if (github.event.issue.title.includes('bug')) {
-              console.log('::set-output name=labels::bug');
-            } else if (github.event.issue.body.includes('feature request')) {
-              console.log('::set-output name=labels::enhancement');
-            }
-        id: label
 
-      - name: Apply Labels
-        if: steps.label.outputs.labels != ''
-        run: |
-          echo "Applying labels..."
-          IFS=',' read -ra labels <<< "${{ steps.label.outputs.labels }}"
-          for label in "${labels[@]}"; do
-            echo "Labeling with $label"
-            gh issue add-label ${{ github.event.issue.number }} "$label"
-          done
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+    - name: Set Labels
+      uses: actions/labeler@v2
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        configuration-path: .github/labeler.yml
