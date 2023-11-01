@@ -1,4 +1,4 @@
-name: Issue Labeling
+name: Automated Issue Assignment
 
 on:
   issues:
@@ -6,12 +6,28 @@ on:
       - opened
 
 jobs:
-  label:
+  assign:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Set Labels
-      uses: actions/labeler@v2
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        configuration-path: .github/labeler.yml
+    - name: Check for Keywords
+      id: keyword-check
+      run: |
+        keywords=("bug" "feature" "enhancement")
+        matched="false"
+        for keyword in "${keywords[@]}"; do
+          if grep -i "$keyword" $GITHUB_EVENT_PATH; then
+            echo "::set-output name=matched::true"
+            echo "::set-output name=keyword::$keyword"
+            break
+          fi
+        done
+      shell: bash
+
+    - name: Assign Issue
+      if: steps.keyword-check.outputs.matched == 'true'
+      run: |
+        echo "Assigning issue to ${{ steps.keyword-check.outputs.keyword }} team."
+        # Use GitHub API to assign the issue to the appropriate team or user.
+        # Example: Assign the issue to a team named "bugs" or "features."
+      shell: bash
