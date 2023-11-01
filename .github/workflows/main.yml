@@ -21,11 +21,11 @@ jobs:
             echo "::set-output name=keyword::$keyword"
             break
           fi
-        shell: bash
+        done
+      shell: bash
 
-      - name: Assign Issue
-        if: steps.keyword-check.outputs.matched =='true'
-        run: |
-          echo "Assigning issue to ${{ steps.keyword-check.outputs.keyword }} team."
-          
-        shell: bash
+    - name: Assign Issue
+      if: steps.keyword-check.outputs.matched =='true'
+      run: |
+        echo "Assigning issue to ${{ steps.keyword-check.outputs.keyword }} team."
+      shell: bash
