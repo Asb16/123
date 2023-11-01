@@ -1,0 +1,31 @@
+name: Automated Issue Assignment
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  assign:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check for Keywords
+      id: keyword-check
+      run: |
+        keywords=("bug" "feature" "enhancement")
+        matched="false"
+        for keyword in "${keyword[@]}"; do
+          if grep -i "$keyword" $GITHUB_EVENT_PATH; then
+            echo "::set-output name=matched::true"
+            echo "::set-output name=keyword::$keyword"
+            break
+          fi
+        shell: bash
+
+      - name: Assign Issue
+        if: steps.keyword-check.outputs.matched =='true'
+        run: |
+          echo "Assigning issue to ${{ steps.keyword-check.outputs.keyword }} team."
+          
+        shell: bash
