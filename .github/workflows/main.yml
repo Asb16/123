@@ -1,0 +1,27 @@
+name: Assign Issues to Teams
+
+on:
+  issues:
+    types:
+      - opened
+      - edited
+
+jobs:
+  assign-issues:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: check if issue belongs to a specific label
+        id: check-label
+        run: |
+          ISSUE_LABELS=$(jq -r '.issue.labels[].name' "${{ github.event_path }}")
+          echo "::set-output name=label.outputs.label1 == 'team-label'
+          run: |
+
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/orgs/your-organization/teams/your-team/memberships/${{ github.event.issue.user.login }} \
+            -d ''
+          shell: bash
+    
