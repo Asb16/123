@@ -1,4 +1,4 @@
-name: Assign Issues to Teams
+name: Issue Labeler
 
 on:
   issues:
@@ -7,25 +7,28 @@ on:
       - edited
 
 jobs:
-  assign-issues:
+  label-issues:
     runs-on: ubuntu-latest
-
     steps:
-      - name: check if issue belongs to a specific label
-        id: check-label
-        run: |
-          ISSUE_LABELS=$(jq -r '.issue.labels[].name' "${{ github.event_path }}")
-          echo "::set-output name=label::$ISSUE_LABELS"
-        shell: bash
+      - name: Check for Label Criteria
+        uses: actions/github-script@v5
+        with:
+          script: |
+            if (github.event.issue.title.includes('bug')) {
+              console.log('::set-output name=labels::bug');
+            } else if (github.event.issue.body.includes('feature request')) {
+              console.log('::set-output name=labels::enhancement');
+            }
+        id: label
 
-      - name: Assign Issue to Team
-        if: steps.check-label.outputs.label1 == 'team-label'
+      - name: Apply Labels
+        if: steps.label.outputs.labels != ''
         run: |
-
-          curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/orgs/your-organization/teams/your-team/memberships/${{ github.event.issue.user.login }} \
-            -d ''
-        shell: bash
-    
+          echo "Applying labels..."
+          IFS=',' read -ra labels <<< "${{ steps.label.outputs.labels }}"
+          for label in "${labels[@]}"; do
+            echo "Labeling with $label"
+            gh issue add-label ${{ github.event.issue.number }} "$label"
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
