@@ -1,4 +1,4 @@
-name: Assign Issues
+name: Assign Issues Based on Templates
 
 on:
   issues:
@@ -6,34 +6,27 @@ on:
       - opened
 
 jobs:
-  assign:
+  assign-issue:
     runs-on: ubuntu-latest
 
     steps:
       - name: Check Issue Template
-        id: check_template
+        id: issue_template
         run: |
-          issue_template="${{ github.event.issue.body }}"
-          if [[ $issue_template == *"bug_report.md"* ]]; then
-            echo "Issue is a Bug Report."
-          elif [[ $issue_template == *"feature_request.md"* ]]; then
-            echo "Issue is a Feature Request."
-          else
-            echo "Unknown Issue Template."
-            exit 1
-          fi
+          ISSUE_TEMPLATE=$(jq -r .issue.template "${{ github.event_path }}")
+          echo "::set-output name=template::$ISSUE_TEMPLATE"
+        shell: bash
 
-      - name: Assign to Team or User
-        if: steps.check_template.outcome == 'success'
+      - name: Assign Issue
+        if: steps.issue_template.outputs.template == "bug_report"
         run: |
-          issue_type="${{ steps.check_template.outputs }}"
-          if [[ $issue_type == *"Bug Report"* ]]; then
-            echo "Assigning to the Bug Fixers team."
-            # Use GitHub API to assign the issue to a team or user.
-            # Example: `curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d '{"assignees": ["username"]}' "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/assignees"`
-          elif [[ $issue_type == *"Feature Request"* ]]; then
-            echo "Assigning to the Feature Team."
-            # Use GitHub API to assign the issue to a team or user.
-          else
-            echo "Issue not assigned."
-          fi
+          echo "This is a Bug Report template. Assigning to the Bug Triage team."
+          # You can use the GitHub API to assign the issue to a user or team here.
+        shell: bash
+
+      - name: Assign Issue
+        if: steps.issue_template.outputs.template == "feature_request"
+        run: |
+          echo "This is a Feature Request template. Assigning to the Feature Team."
+          # You can use the GitHub API to assign the issue to a user or team here.
+        shell: bash
