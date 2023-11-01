@@ -11,7 +11,7 @@ jobs:
 
     steps:
     - name: Set Labels
-      uses: action/labeler@v2
+      uses: actions/labeler@v2
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         configuration-path: .github/labeler.yml
