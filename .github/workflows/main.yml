@@ -15,13 +15,17 @@ jobs:
         id: check-label
         run: |
           ISSUE_LABELS=$(jq -r '.issue.labels[].name' "${{ github.event_path }}")
-          echo "::set-output name=label.outputs.label1 == 'team-label'
-          run: |
+          echo "::set-output name=label::$ISSUE_LABELS"
+        shell: bash
+
+      - name: Assign Issue to Team
+        if: steps.check-label.outputs.label1 == 'team-label'
+        run: |
 
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/orgs/your-organization/teams/your-team/memberships/${{ github.event.issue.user.login }} \
             -d ''
-          shell: bash
+        shell: bash
     
