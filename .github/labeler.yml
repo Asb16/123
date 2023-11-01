@@ -1,0 +1,7 @@
+rules:
+  - match: 'bug''
+    labels:
+      - 'bug'
+  - match: 'feature'
+    labels:
+      - 'enhancement'
